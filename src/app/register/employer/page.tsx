@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -31,7 +32,7 @@ const employerSchema = z.object({
 type EmployerFormData = z.infer<typeof employerSchema>;
 
 export default function EmployerRegistrationPage() {
-  const { login } = useAppContext();
+  const { login } = useAppContext(); // login is for new registrations
   const router = useRouter();
   const { toast } = useToast();
 
@@ -41,8 +42,8 @@ export default function EmployerRegistrationPage() {
 
   const onSubmit = (data: EmployerFormData) => {
     const employerUser: User = {
-      id: `user-${Date.now()}`,
-      name: data.contactPersonName, // Primary contact person
+      id: `user-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+      name: data.contactPersonName, 
       email: data.contactPersonEmail,
       role: 'employer',
       companyName: data.companyName,
@@ -54,13 +55,16 @@ export default function EmployerRegistrationPage() {
       companyLocations: data.companyLocations?.split(',').map(s => s.trim()).filter(s => s),
       hiringFocus: data.hiringFocus,
     };
-    login(employerUser);
-    toast({
-      title: "Registration Successful!",
-      description: `Welcome, ${data.companyName}! You are now registered as an Employer.`,
-      variant: "default",
-    });
-    router.push('/dashboard/employer');
+    
+    const registrationSuccess = login(employerUser);
+    if (registrationSuccess) {
+      toast({
+        title: "Registration Successful!",
+        description: `Welcome, ${data.companyName}! You are now registered as an Employer.`,
+        variant: "default",
+      });
+      router.push('/dashboard/employer');
+    }
   };
 
   return (

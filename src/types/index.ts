@@ -1,3 +1,4 @@
+
 export type Role = 'veteran' | 'mentor' | 'employer' | null;
 
 export interface User {
@@ -39,7 +40,7 @@ export interface User {
 export interface Job {
   id: string;
   employerId: string;
-  employerName: string; // Or fetch from User context
+  employerName: string; 
   title: string;
   description: string;
   location: string;

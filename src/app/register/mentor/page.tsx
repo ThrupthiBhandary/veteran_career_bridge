@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -31,7 +32,7 @@ const mentorSchema = z.object({
 type MentorFormData = z.infer<typeof mentorSchema>;
 
 export default function MentorRegistrationPage() {
-  const { login } = useAppContext();
+  const { login } = useAppContext(); // login is for new registrations
   const router = useRouter();
   const { toast } = useToast();
 
@@ -41,7 +42,7 @@ export default function MentorRegistrationPage() {
 
   const onSubmit = (data: MentorFormData) => {
     const mentorUser: User = {
-      id: `user-${Date.now()}`,
+      id: `user-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
       name: data.name,
       email: data.email,
       role: 'mentor',
@@ -54,13 +55,16 @@ export default function MentorRegistrationPage() {
       mentoringCommunication: data.mentoringCommunication,
       mentoringMotivation: data.mentoringMotivation,
     };
-    login(mentorUser);
-    toast({
-      title: "Registration Successful!",
-      description: `Welcome, ${data.name}! You are now registered as a Mentor.`,
-      variant: "default",
-    });
-    router.push('/dashboard/mentor');
+    
+    const registrationSuccess = login(mentorUser);
+    if (registrationSuccess) {
+      toast({
+        title: "Registration Successful!",
+        description: `Welcome, ${data.name}! You are now registered as a Mentor.`,
+        variant: "default",
+      });
+      router.push('/dashboard/mentor');
+    }
   };
 
   return (

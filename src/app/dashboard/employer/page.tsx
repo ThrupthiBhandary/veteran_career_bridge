@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -5,17 +6,16 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useAppContext } from '@/contexts/AppContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlusCircle, Edit3, Trash2, Briefcase, Users } from 'lucide-react';
-import type { Job } from '@/types';
+import { PlusCircle, Users, Briefcase, Eye } from 'lucide-react'; // Replaced Edit3, Trash2 with Eye
+import type { Job, Application } from '@/types';
 import { useRouter } from 'next/navigation';
 
 export default function EmployerDashboardPage() {
-  const { currentUser, getJobsByEmployer } = useAppContext();
+  const { currentUser, getJobsByEmployer, getApplicationsByJobId } = useAppContext();
   const router = useRouter();
 
   if (!currentUser || currentUser.role !== 'employer') {
-    // This should ideally be handled by a layout or middleware
-     if (typeof window !== 'undefined') router.push('/');
+     if (typeof window !== 'undefined') router.push('/login'); // Redirect to login if not employer
     return <p className="text-center py-10">Access Denied. Please log in as an employer.</p>;
   }
   
@@ -41,21 +41,22 @@ export default function EmployerDashboardPage() {
           {postedJobs.length === 0 ? (
             <div className="text-center py-10">
               <Briefcase className="mx-auto h-12 w-12 text-muted-foreground" />
-              <p className="mt-4 text-lg text-muted-foreground">You haven't posted any jobs yet.</p>
+              <p className="mt-4 text-lg text-muted-foreground">You haven&apos;t posted any jobs yet.</p>
               <Link href="/dashboard/employer/post-job" passHref className="mt-2">
                 <Button variant="link" className="text-primary">Post your first job</Button>
               </Link>
             </div>
           ) : (
             <ul className="space-y-4">
-              {postedJobs.map((job) => (
-                <JobListItem key={job.id} job={job} />
-              ))}
+              {postedJobs.map((job) => {
+                const applications = getApplicationsByJobId(job.id);
+                return <JobListItem key={job.id} job={job} applicantCount={applications.length} />;
+              })}
             </ul>
           )}
         </CardContent>
       </Card>
-       {/* Placeholder for future features like candidate search or analytics */}
+      
       <Card className="shadow-lg">
         <CardHeader>
             <CardTitle className="font-headline text-2xl text-primary">Analytics Overview</CardTitle>
@@ -72,7 +73,13 @@ export default function EmployerDashboardPage() {
   );
 }
 
-function JobListItem({ job }: { job: Job }) {
+interface JobListItemProps {
+  job: Job;
+  applicantCount: number;
+}
+
+function JobListItem({ job, applicantCount }: JobListItemProps) {
+  const router = useRouter();
   return (
     <li className="p-4 border rounded-lg bg-card hover:shadow-md transition-shadow">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center">
@@ -80,12 +87,16 @@ function JobListItem({ job }: { job: Job }) {
           <h3 className="text-xl font-semibold text-primary font-headline">{job.title}</h3>
           <p className="text-sm text-muted-foreground">{job.location} - Posted on {new Date(job.postedDate).toLocaleDateString()}</p>
           <p className="text-sm mt-1">Skills: {job.requiredSkills.join(', ')}</p>
+          <p className="text-sm mt-1 font-medium text-accent">Applicants: {applicantCount}</p>
         </div>
         <div className="mt-3 sm:mt-0 flex space-x-2">
-          {/* Future actions */}
-          {/* <Button variant="outline" size="sm"><Edit3 className="mr-1 h-4 w-4" /> Edit</Button>
-          <Button variant="destructive" size="sm"><Trash2 className="mr-1 h-4 w-4" /> Delete</Button> */}
-           <Button variant="outline" size="sm" disabled>View Applicants (soon)</Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => router.push(`/dashboard/employer/applicants/${job.id}`)}
+          >
+            <Eye className="mr-1 h-4 w-4" /> View Applicants
+          </Button>
         </div>
       </div>
     </li>

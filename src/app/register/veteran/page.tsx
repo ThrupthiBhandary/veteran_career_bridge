@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -37,7 +38,7 @@ const veteranSchema = z.object({
 type VeteranFormData = z.infer<typeof veteranSchema>;
 
 export default function VeteranRegistrationPage() {
-  const { login } = useAppContext();
+  const { login } = useAppContext(); // login is for new registrations
   const router = useRouter();
   const { toast } = useToast();
   const [showCustomSkillInput, setShowCustomSkillInput] = useState(false);
@@ -56,7 +57,7 @@ export default function VeteranRegistrationPage() {
     }
 
     const veteranUser: User = {
-      id: `user-${Date.now()}`,
+      id: `user-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
       name: data.name,
       email: data.email,
       role: 'veteran',
@@ -71,13 +72,17 @@ export default function VeteranRegistrationPage() {
       locationPreference: data.locationPreference,
       employmentType: data.employmentType,
     };
-    login(veteranUser);
-    toast({
-      title: "Registration Successful!",
-      description: `Welcome, ${data.name}! You are now registered as a Veteran.`,
-      variant: "default",
-    });
-    router.push('/dashboard/veteran');
+    
+    const registrationSuccess = login(veteranUser); // login now returns boolean
+    if (registrationSuccess) {
+      toast({
+        title: "Registration Successful!",
+        description: `Welcome, ${data.name}! You are now registered as a Veteran.`,
+        variant: "default",
+      });
+      router.push('/dashboard/veteran');
+    }
+    // If registration fails (e.g. email exists), the toast is handled by AppContext.login
   };
 
   const selectedSkills = watch('selectedSkills');

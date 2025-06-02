@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -45,12 +46,16 @@ export default function Header() {
             </>
           ) : (
             <>
-              <Link href="/#register" passHref>
+              <Link href="/login" passHref>
                 <Button variant="ghost" className="text-sm sm:text-base">
+                  <LogIn className="mr-0 sm:mr-2 h-4 w-4" /> <span className="hidden sm:inline">Login</span>
+                </Button>
+              </Link>
+              <Link href="/#register" passHref>
+                <Button variant="default" size="sm" className="text-sm sm:text-base bg-accent hover:bg-accent/90 text-accent-foreground">
                   <UserPlus className="mr-0 sm:mr-2 h-4 w-4" /> <span className="hidden sm:inline">Register</span>
                 </Button>
               </Link>
-               {/* We can add a login page later if needed, for now registration leads to "login" */}
             </>
           )}
         </nav>
