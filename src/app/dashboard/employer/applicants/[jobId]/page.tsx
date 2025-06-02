@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, UserCheck, FileText, Clock } from 'lucide-react';
+import { ArrowLeft, UserCheck } from 'lucide-react';
 import Link from 'next/link';
 
 interface ApplicantDetails extends Application {
@@ -30,8 +30,14 @@ export default function JobApplicantsPage() {
 
   const [job, setJob] = useState<Job | null>(null);
   const [applicants, setApplicants] = useState<ApplicantDetails[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (currentUser === undefined) { // AppContext is still initializing
+        setIsLoading(true);
+        return;
+    }
+
     if (!currentUser || currentUser.role !== 'employer') {
       router.push('/login');
       return;
@@ -39,9 +45,8 @@ export default function JobApplicantsPage() {
 
     const currentJob = jobs.find(j => j.id === jobId && j.employerId === currentUser.id);
     if (!currentJob) {
-      // router.push('/dashboard/employer'); // Or show an error
-      console.error("Job not found or access denied");
-      setJob(null); // Explicitly set to null to handle in render
+      setJob(null);
+      setIsLoading(false);
       return;
     }
     setJob(currentJob);
@@ -52,14 +57,20 @@ export default function JobApplicantsPage() {
       veteran: getUserById(app.veteranId),
     }));
     setApplicants(detailedApplicants);
+    setIsLoading(false);
 
   }, [jobId, currentUser, jobs, getApplicationsByJobId, getUserById, router]);
 
+  if (isLoading) {
+    return <p className="text-center py-10">Loading applicant data...</p>;
+  }
+
   if (!currentUser || currentUser.role !== 'employer') {
+    // This case should be handled by the useEffect redirect, but as a fallback:
     return <p className="text-center py-10">Access Denied. Please log in as an employer.</p>;
   }
   
-  if (!job && currentUser) { // Check currentUser to avoid flash of this message before redirect
+  if (!job) { 
      return (
         <div className="text-center py-10">
             <p className="text-xl text-muted-foreground">Job not found or you do not have permission to view its applicants.</p>
@@ -69,14 +80,9 @@ export default function JobApplicantsPage() {
         </div>
      );
   }
-  if (!job) { // If still no job (e.g., initial load or error)
-    return <p className="text-center py-10">Loading job details...</p>;
-  }
-
 
   const handleStatusChange = (veteranId: string, newStatus: Application['status']) => {
     updateApplicationStatus(jobId, veteranId, newStatus);
-    // Re-fetch or update local state if needed, AppContext update should trigger re-render
     const updatedApplicants = applicants.map(app => 
       app.veteranId === veteranId ? { ...app, status: newStatus } : app
     );

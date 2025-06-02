@@ -1,6 +1,7 @@
+
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAppContext } from '@/contexts/AppContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, CalendarDays, MessageCircle } from 'lucide-react';
@@ -10,9 +11,18 @@ export default function MentorDashboardPage() {
   const { currentUser } = useAppContext();
   const router = useRouter();
 
+  useEffect(() => {
+    if (currentUser === undefined) return; // Still loading from AppContext
+
+    if (currentUser === null) {
+      router.push('/login');
+    } else if (currentUser.role !== 'mentor') {
+      router.push('/'); // Or a generic unauthorized page
+    }
+  }, [currentUser, router]);
+
   if (!currentUser || currentUser.role !== 'mentor') {
-     if (typeof window !== 'undefined') router.push('/');
-    return <p className="text-center py-10">Access Denied. Please log in as a mentor.</p>;
+    return <p className="text-center py-10">Loading dashboard or access denied...</p>;
   }
 
   return (

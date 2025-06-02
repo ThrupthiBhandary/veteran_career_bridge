@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAppContext } from '@/contexts/AppContext';
 import { skillMatching, type SkillMatchingOutput } from '@/ai/flows/skill-matching';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -9,10 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Briefcase, CheckCircle, FileText, MessageSquare, AlertTriangle, Star, Zap, Brain } from 'lucide-react';
-import type { Job, Application } from '@/types';
+import type { Job } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
-import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface EnrichedJob extends Job {
@@ -22,27 +21,26 @@ interface EnrichedJob extends Job {
 }
 
 export default function VeteranDashboardPage() {
-  const { currentUser, jobs, applications, applyForJob, getApplicationsByVeteran } = useAppContext();
+  const { currentUser, jobs, applyForJob, getApplicationsByVeteran } = useAppContext();
   const [enrichedJobs, setEnrichedJobs] = useState<EnrichedJob[]>([]);
   const { toast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
-    if (!currentUser || currentUser.role !== 'veteran') {
-      if (typeof window !== 'undefined') router.push('/');
+    if (currentUser === undefined) return; // Still loading from AppContext
+
+    if (currentUser === null) {
+      router.push('/login');
+      return;
+    } else if (currentUser.role !== 'veteran') {
+      router.push('/'); // Or a generic unauthorized page
       return;
     }
 
     const fetchMatches = async () => {
       if (!currentUser.skills || currentUser.skills.length === 0) {
-         // Even if no skills, preferences might exist, but skill match is primary
-         // The AI flow will handle empty skills gracefully for preference matching.
-         // However, we still prompt for skills for a good experience.
          setEnrichedJobs(jobs.map(job => ({ ...job, isLoadingMatch: false, matchError: "Please update your profile with skills to see job matches."})));
-        // If you want to proceed with preference-only matching when skills are absent,
-        // you could remove the early return and let the AI handle it.
-        // For now, keeping skill prompt.
-        // return; 
+        return; 
       }
 
       setEnrichedJobs(jobs.map(job => ({ ...job, isLoadingMatch: true })));
@@ -66,11 +64,14 @@ export default function VeteranDashboardPage() {
       setEnrichedJobs(updatedJobs.sort((a, b) => (b.matchResult?.matchScore || 0) - (a.matchResult?.matchScore || 0)));
     };
 
-    fetchMatches();
+    if (currentUser && currentUser.role === 'veteran') {
+        fetchMatches();
+    }
   }, [currentUser, jobs, router]);
 
+
   if (!currentUser || currentUser.role !== 'veteran') {
-    return <p className="text-center py-10">Access Denied. Please log in as a veteran.</p>;
+    return <p className="text-center py-10">Loading dashboard or access denied...</p>;
   }
   
   const veteranApplications = getApplicationsByVeteran(currentUser.id);
@@ -137,12 +138,12 @@ export default function VeteranDashboardPage() {
               ) : (
                 <ul className="space-y-4">
                   {veteranApplications.map(app => {
-                    const job = jobs.find(j => j.id === app.jobId);
+                    const jobDetails = jobs.find(j => j.id === app.jobId);
                     return (
                       <li key={app.jobId} className="p-4 border rounded-lg bg-card hover:shadow-md transition-shadow">
                         <div className="flex justify-between items-center">
                           <div>
-                            <h3 className="text-lg font-semibold text-primary">{job?.title || 'Job not found'}</h3>
+                            <h3 className="text-lg font-semibold text-primary">{jobDetails?.title || 'Job not found'}</h3>
                             <p className="text-sm text-muted-foreground">Applied on: {new Date(app.appliedDate).toLocaleDateString()}</p>
                           </div>
                           <Badge variant={app.status === 'Applied' ? 'secondary' : app.status === 'Offer Received' ? 'default' : 'outline'} className="capitalize bg-accent text-accent-foreground">
@@ -248,4 +249,3 @@ function JobSuggestionCard({ job, onApply, isApplied }: JobSuggestionCardProps) 
     </Card>
   );
 }
-

@@ -33,7 +33,7 @@ export default function LoginPage() {
 
   React.useEffect(() => {
     if (currentUser) {
-      // Redirect if already logged in
+      // Redirect if already logged in or after successful login
       switch (currentUser.role) {
         case 'veteran':
           router.push('/dashboard/veteran');
@@ -45,29 +45,15 @@ export default function LoginPage() {
           router.push('/dashboard/employer');
           break;
         default:
-          router.push('/');
+          router.push('/'); // Fallback
       }
     }
   }, [currentUser, router]);
 
   const onSubmit = (data: LoginFormData) => {
-    const loggedInUser = attemptLogin(data.email, data.role);
-    if (loggedInUser) {
-      switch (loggedInUser.role) {
-        case 'veteran':
-          router.push('/dashboard/veteran');
-          break;
-        case 'mentor':
-          router.push('/dashboard/mentor');
-          break;
-        case 'employer':
-          router.push('/dashboard/employer');
-          break;
-        default:
-          router.push('/');
-      }
-    }
+    attemptLogin(data.email, data.role);
     // Error toast is handled by attemptLogin in AppContext
+    // Redirection will be handled by the useEffect hook monitoring currentUser
   };
 
   return (

@@ -1,6 +1,7 @@
+
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -35,10 +36,18 @@ export default function PostJobPage() {
     resolver: zodResolver(jobSchema),
   });
   
+  useEffect(() => {
+    if (currentUser === undefined) return; // Still loading from AppContext
+
+    if (currentUser === null) {
+      router.push('/login');
+    } else if (currentUser.role !== 'employer') {
+      router.push('/'); // Or a generic unauthorized page
+    }
+  }, [currentUser, router]);
+
   if (!currentUser || currentUser.role !== 'employer') {
-    // This should ideally be handled by a layout or middleware
-    if (typeof window !== 'undefined') router.push('/');
-    return <p className="text-center py-10">Access Denied. Please log in as an employer to post jobs.</p>;
+    return <p className="text-center py-10">Loading page or access denied...</p>;
   }
 
   const onSubmit = (data: JobFormData) => {

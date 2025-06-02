@@ -1,22 +1,31 @@
 
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useAppContext } from '@/contexts/AppContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlusCircle, Users, Briefcase, Eye } from 'lucide-react'; // Replaced Edit3, Trash2 with Eye
-import type { Job, Application } from '@/types';
+import { PlusCircle, Users, Briefcase, Eye } from 'lucide-react';
+import type { Job } from '@/types';
 import { useRouter } from 'next/navigation';
 
 export default function EmployerDashboardPage() {
   const { currentUser, getJobsByEmployer, getApplicationsByJobId } = useAppContext();
   const router = useRouter();
 
+  useEffect(() => {
+    if (currentUser === undefined) return; // Still loading from AppContext
+
+    if (currentUser === null) {
+      router.push('/login');
+    } else if (currentUser.role !== 'employer') {
+      router.push('/'); // Or a generic unauthorized page
+    }
+  }, [currentUser, router]);
+
   if (!currentUser || currentUser.role !== 'employer') {
-     if (typeof window !== 'undefined') router.push('/login'); // Redirect to login if not employer
-    return <p className="text-center py-10">Access Denied. Please log in as an employer.</p>;
+    return <p className="text-center py-10">Loading dashboard or access denied...</p>;
   }
   
   const postedJobs = getJobsByEmployer(currentUser.id);
