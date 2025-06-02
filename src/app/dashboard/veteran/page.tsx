@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
@@ -34,8 +35,14 @@ export default function VeteranDashboardPage() {
 
     const fetchMatches = async () => {
       if (!currentUser.skills || currentUser.skills.length === 0) {
+         // Even if no skills, preferences might exist, but skill match is primary
+         // The AI flow will handle empty skills gracefully for preference matching.
+         // However, we still prompt for skills for a good experience.
          setEnrichedJobs(jobs.map(job => ({ ...job, isLoadingMatch: false, matchError: "Please update your profile with skills to see job matches."})));
-        return;
+        // If you want to proceed with preference-only matching when skills are absent,
+        // you could remove the early return and let the AI handle it.
+        // For now, keeping skill prompt.
+        // return; 
       }
 
       setEnrichedJobs(jobs.map(job => ({ ...job, isLoadingMatch: true })));
@@ -46,6 +53,8 @@ export default function VeteranDashboardPage() {
             const matchResult = await skillMatching({
               veteranSkills: currentUser.skills || [],
               jobDescription: job.description,
+              desiredIndustry: currentUser.desiredIndustry || [],
+              desiredJobTitle: currentUser.desiredJobTitle || [],
             });
             return { ...job, matchResult, isLoadingMatch: false };
           } catch (error) {
