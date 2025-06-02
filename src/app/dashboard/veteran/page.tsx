@@ -27,13 +27,13 @@ export default function VeteranDashboardPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (currentUser === undefined) return; // Still loading from AppContext
+    if (currentUser === undefined) return; 
 
     if (currentUser === null) {
       router.push('/login');
       return;
     } else if (currentUser.role !== 'veteran') {
-      router.push('/'); // Or a generic unauthorized page
+      router.push('/'); 
       return;
     }
 
@@ -53,6 +53,9 @@ export default function VeteranDashboardPage() {
               jobDescription: job.description,
               desiredIndustry: currentUser.desiredIndustry || [],
               desiredJobTitle: currentUser.desiredJobTitle || [],
+              veteranAge: currentUser.age,
+              maxAgeRequirement: job.maxAgeRequirement,
+              veteranHighestQualification: currentUser.highestQualification,
             });
             return { ...job, matchResult, isLoadingMatch: false };
           } catch (error) {
@@ -100,7 +103,7 @@ export default function VeteranDashboardPage() {
           <Card className="shadow-lg">
             <CardHeader>
               <CardTitle className="font-headline text-2xl text-primary">Recommended Job Openings</CardTitle>
-              <CardDescription>Jobs matched to your skills and preferences. Update your profile for better matches.</CardDescription>
+              <CardDescription>Jobs matched to your skills, preferences, age, and qualifications. Update your profile for better matches.</CardDescription>
             </CardHeader>
             <CardContent>
               {enrichedJobs.length === 0 && !enrichedJobs.some(j => j.isLoadingMatch) && (
@@ -199,6 +202,7 @@ function JobSuggestionCard({ job, onApply, isApplied }: JobSuggestionCardProps) 
         </div>
         <CardDescription className="text-sm text-muted-foreground">
           {job.employerName} - {job.location}
+          {job.maxAgeRequirement && ` (Max Age: ${job.maxAgeRequirement})`}
         </CardDescription>
         <p className="text-xs text-muted-foreground pt-1">Posted: {new Date(job.postedDate).toLocaleDateString()}</p>
       </CardHeader>
@@ -249,3 +253,4 @@ function JobSuggestionCard({ job, onApply, isApplied }: JobSuggestionCardProps) 
     </Card>
   );
 }
+

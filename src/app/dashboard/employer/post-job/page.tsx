@@ -23,6 +23,7 @@ const jobSchema = z.object({
   description: z.string().min(20, "Description must be at least 20 characters"),
   location: z.string().min(2, "Location is required"),
   requiredSkills: z.string().min(1, "Please list at least one required skill (comma-separated)"),
+  maxAgeRequirement: z.coerce.number().positive("Maximum age must be a positive number").optional().or(z.literal('')),
 });
 
 type JobFormData = z.infer<typeof jobSchema>;
@@ -37,12 +38,12 @@ export default function PostJobPage() {
   });
   
   useEffect(() => {
-    if (currentUser === undefined) return; // Still loading from AppContext
+    if (currentUser === undefined) return; 
 
     if (currentUser === null) {
       router.push('/login');
     } else if (currentUser.role !== 'employer') {
-      router.push('/'); // Or a generic unauthorized page
+      router.push('/'); 
     }
   }, [currentUser, router]);
 
@@ -56,6 +57,7 @@ export default function PostJobPage() {
       description: data.description,
       location: data.location,
       requiredSkills: data.requiredSkills.split(',').map(skill => skill.trim()).filter(skill => skill),
+      maxAgeRequirement: data.maxAgeRequirement ? Number(data.maxAgeRequirement) : undefined,
     };
     addJob(jobData);
     toast({
@@ -99,6 +101,11 @@ export default function PostJobPage() {
               <Input id="requiredSkills" {...register('requiredSkills')} placeholder="e.g., Project Management, Java, Leadership" />
               {errors.requiredSkills && <p className="text-destructive text-sm mt-1">{errors.requiredSkills.message}</p>}
             </div>
+            <div>
+              <Label htmlFor="maxAgeRequirement">Maximum Age Requirement (Optional)</Label>
+              <Input id="maxAgeRequirement" type="number" {...register('maxAgeRequirement')} placeholder="e.g., 45" />
+              {errors.maxAgeRequirement && <p className="text-destructive text-sm mt-1">{errors.maxAgeRequirement.message}</p>}
+            </div>
             <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">Post Job</Button>
           </form>
         </CardContent>
@@ -106,3 +113,4 @@ export default function PostJobPage() {
     </div>
   );
 }
+

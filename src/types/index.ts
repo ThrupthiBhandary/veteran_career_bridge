@@ -17,6 +17,8 @@ export interface User {
   desiredJobTitle?: string[];
   locationPreference?: string;
   employmentType?: string;
+  age?: number;
+  highestQualification?: string;
   // Mentor specific
   professionalTitle?: string;
   company?: string;
@@ -46,6 +48,7 @@ export interface Job {
   location: string;
   requiredSkills: string[];
   postedDate: string;
+  maxAgeRequirement?: number;
 }
 
 export interface Application {
@@ -61,3 +64,4 @@ export interface SkillMatchResult {
   missingSkills: string[];
   overallFit: string;
 }
+

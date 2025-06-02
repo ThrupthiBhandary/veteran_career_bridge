@@ -22,6 +22,8 @@ const veteranSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
+  age: z.coerce.number().positive("Age must be a positive number").min(18, "Must be at least 18 years old"),
+  highestQualification: z.string().min(2, "Highest qualification is required"),
   militaryBranch: z.string().min(1, "Branch is required"),
   rank: z.string().min(1, "Rank is required"),
   mos: z.string().optional(),
@@ -61,6 +63,8 @@ export default function VeteranRegistrationPage() {
       name: data.name,
       email: data.email,
       role: 'veteran',
+      age: data.age,
+      highestQualification: data.highestQualification,
       militaryBranch: data.militaryBranch,
       rank: data.rank,
       mos: data.mos,
@@ -73,7 +77,7 @@ export default function VeteranRegistrationPage() {
       employmentType: data.employmentType,
     };
     
-    const registrationSuccess = login(veteranUser); // login now returns boolean
+    const registrationSuccess = login(veteranUser); 
     if (registrationSuccess) {
       toast({
         title: "Registration Successful!",
@@ -82,7 +86,6 @@ export default function VeteranRegistrationPage() {
       });
       router.push('/dashboard/veteran');
     }
-    // If registration fails (e.g. email exists), the toast is handled by AppContext.login
   };
 
   const selectedSkills = watch('selectedSkills');
@@ -110,6 +113,16 @@ export default function VeteranRegistrationPage() {
               <Label htmlFor="password">Password</Label>
               <Input id="password" type="password" {...register('password')} />
               {errors.password && <p className="text-destructive text-sm mt-1">{errors.password.message}</p>}
+            </div>
+            <div>
+              <Label htmlFor="age">Age</Label>
+              <Input id="age" type="number" {...register('age')} />
+              {errors.age && <p className="text-destructive text-sm mt-1">{errors.age.message}</p>}
+            </div>
+            <div className="md:col-span-2">
+              <Label htmlFor="highestQualification">Highest Qualification</Label>
+              <Input id="highestQualification" {...register('highestQualification')} placeholder="e.g., Bachelor's Degree, High School Diploma, Specific Certification" />
+              {errors.highestQualification && <p className="text-destructive text-sm mt-1">{errors.highestQualification.message}</p>}
             </div>
           </div>
         </div>
@@ -235,3 +248,4 @@ export default function VeteranRegistrationPage() {
     </RegistrationFormWrapper>
   );
 }
+
