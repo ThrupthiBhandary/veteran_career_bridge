@@ -8,8 +8,7 @@ export interface User {
   role: Role;
   // Veteran specific
   militaryBranch?: string;
-  // rank?: string; // Removed rank
-  mos?: string;
+  // mos?: string; // Removed MOS
   yearsOfService?: number;
   militaryExperienceSummary?: string;
   skills?: string[];

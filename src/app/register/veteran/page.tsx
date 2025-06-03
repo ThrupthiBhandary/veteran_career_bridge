@@ -25,8 +25,7 @@ const veteranSchema = z.object({
   age: z.coerce.number().positive("Age must be a positive number").min(18, "Must be at least 18 years old"),
   highestQualification: z.string().min(2, "Highest qualification is required"),
   militaryBranch: z.string().min(1, "Branch is required"),
-  // rank: z.string().min(1, "Rank is required"), // Removed rank validation
-  mos: z.string().optional(),
+  // mos: z.string().optional(), // Removed MOS
   yearsOfService: z.coerce.number().min(0, "Years of service cannot be negative").optional(),
   militaryExperienceSummary: z.string().optional(),
   selectedSkills: z.array(z.string()).optional().default([]),
@@ -66,8 +65,7 @@ export default function VeteranRegistrationPage() {
       age: data.age,
       highestQualification: data.highestQualification,
       militaryBranch: data.militaryBranch,
-      // rank: data.rank, // Removed rank from submission data
-      mos: data.mos,
+      // mos: data.mos, // Removed MOS
       yearsOfService: data.yearsOfService,
       militaryExperienceSummary: data.militaryExperienceSummary,
       skills: allSkills,
@@ -148,17 +146,12 @@ export default function VeteranRegistrationPage() {
               />
               {errors.militaryBranch && <p className="text-destructive text-sm mt-1">{errors.militaryBranch.message}</p>}
             </div>
-            {/* Removed Rank Input Field
-            <div>
-              <Label htmlFor="rank">Rank</Label>
-              <Input id="rank" {...register('rank')} />
-              {errors.rank && <p className="text-destructive text-sm mt-1">{errors.rank.message}</p>}
-            </div>
-            */}
+            {/* Removed MOS Input Field
             <div>
               <Label htmlFor="mos">MOS/Specialty</Label>
               <Input id="mos" {...register('mos')} />
             </div>
+            */}
              <div>
               <Label htmlFor="yearsOfService">Years of Service</Label>
               <Input id="yearsOfService" type="number" {...register('yearsOfService')} />
