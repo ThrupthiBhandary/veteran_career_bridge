@@ -25,7 +25,7 @@ const veteranSchema = z.object({
   age: z.coerce.number().positive("Age must be a positive number").min(18, "Must be at least 18 years old"),
   highestQualification: z.string().min(2, "Highest qualification is required"),
   militaryBranch: z.string().min(1, "Branch is required"),
-  rank: z.string().min(1, "Rank is required"),
+  // rank: z.string().min(1, "Rank is required"), // Removed rank validation
   mos: z.string().optional(),
   yearsOfService: z.coerce.number().min(0, "Years of service cannot be negative").optional(),
   militaryExperienceSummary: z.string().optional(),
@@ -66,7 +66,7 @@ export default function VeteranRegistrationPage() {
       age: data.age,
       highestQualification: data.highestQualification,
       militaryBranch: data.militaryBranch,
-      rank: data.rank,
+      // rank: data.rank, // Removed rank from submission data
       mos: data.mos,
       yearsOfService: data.yearsOfService,
       militaryExperienceSummary: data.militaryExperienceSummary,
@@ -148,11 +148,13 @@ export default function VeteranRegistrationPage() {
               />
               {errors.militaryBranch && <p className="text-destructive text-sm mt-1">{errors.militaryBranch.message}</p>}
             </div>
+            {/* Removed Rank Input Field
             <div>
               <Label htmlFor="rank">Rank</Label>
               <Input id="rank" {...register('rank')} />
               {errors.rank && <p className="text-destructive text-sm mt-1">{errors.rank.message}</p>}
             </div>
+            */}
             <div>
               <Label htmlFor="mos">MOS/Specialty</Label>
               <Input id="mos" {...register('mos')} />
@@ -248,4 +250,3 @@ export default function VeteranRegistrationPage() {
     </RegistrationFormWrapper>
   );
 }
-

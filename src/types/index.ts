@@ -8,7 +8,7 @@ export interface User {
   role: Role;
   // Veteran specific
   militaryBranch?: string;
-  rank?: string;
+  // rank?: string; // Removed rank
   mos?: string;
   yearsOfService?: number;
   militaryExperienceSummary?: string;
@@ -49,7 +49,7 @@ export interface Job {
   requiredSkills: string[];
   postedDate: string;
   maxAgeRequirement?: number;
-  employmentType?: 'Full-time' | 'Part-time' | 'Contract' | 'Internship'; // Added employmentType
+  employmentType?: 'Full-time' | 'Part-time' | 'Contract' | 'Internship';
 }
 
 export interface Application {
