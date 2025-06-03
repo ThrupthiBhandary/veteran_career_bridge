@@ -42,13 +42,14 @@ export interface User {
 export interface Job {
   id: string;
   employerId: string;
-  employerName: string; 
+  employerName: string;
   title: string;
   description: string;
   location: string;
   requiredSkills: string[];
   postedDate: string;
   maxAgeRequirement?: number;
+  employmentType?: 'Full-time' | 'Part-time' | 'Contract' | 'Internship'; // Added employmentType
 }
 
 export interface Application {
@@ -64,4 +65,3 @@ export interface SkillMatchResult {
   missingSkills: string[];
   overallFit: string;
 }
-

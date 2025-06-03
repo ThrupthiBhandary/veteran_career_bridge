@@ -2,13 +2,14 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAppContext } from '@/contexts/AppContext';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
+const employmentTypes = ['Full-time', 'Part-time', 'Contract', 'Internship'] as const;
 
 const jobSchema = z.object({
   title: z.string().min(3, "Job title must be at least 3 characters"),
@@ -24,6 +26,7 @@ const jobSchema = z.object({
   location: z.string().min(2, "Location is required"),
   requiredSkills: z.string().min(1, "Please list at least one required skill (comma-separated)"),
   maxAgeRequirement: z.coerce.number().positive("Maximum age must be a positive number").optional().or(z.literal('')),
+  employmentType: z.enum(employmentTypes).optional(),
 });
 
 type JobFormData = z.infer<typeof jobSchema>;
@@ -33,7 +36,7 @@ export default function PostJobPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const { handleSubmit, register, formState: { errors } } = useForm<JobFormData>({
+  const { control, handleSubmit, register, formState: { errors } } = useForm<JobFormData>({
     resolver: zodResolver(jobSchema),
   });
   
@@ -58,6 +61,7 @@ export default function PostJobPage() {
       location: data.location,
       requiredSkills: data.requiredSkills.split(',').map(skill => skill.trim()).filter(skill => skill),
       maxAgeRequirement: data.maxAgeRequirement ? Number(data.maxAgeRequirement) : undefined,
+      employmentType: data.employmentType,
     };
     addJob(jobData);
     toast({
@@ -91,10 +95,32 @@ export default function PostJobPage() {
               <Textarea id="description" {...register('description')} rows={5} placeholder="Provide a detailed job description, responsibilities, and qualifications..." />
               {errors.description && <p className="text-destructive text-sm mt-1">{errors.description.message}</p>}
             </div>
-            <div>
-              <Label htmlFor="location">Location</Label>
-              <Input id="location" {...register('location')} placeholder="e.g., City, State or Remote" />
-              {errors.location && <p className="text-destructive text-sm mt-1">{errors.location.message}</p>}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="location">Location</Label>
+                <Input id="location" {...register('location')} placeholder="e.g., City, State or Remote" />
+                {errors.location && <p className="text-destructive text-sm mt-1">{errors.location.message}</p>}
+              </div>
+              <div>
+                <Label htmlFor="employmentType">Employment Type</Label>
+                <Controller
+                  name="employmentType"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <SelectTrigger id="employmentType">
+                        <SelectValue placeholder="Select Employment Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {employmentTypes.map(type => (
+                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.employmentType && <p className="text-destructive text-sm mt-1">{errors.employmentType.message}</p>}
+              </div>
             </div>
             <div>
               <Label htmlFor="requiredSkills">Required Skills (comma-separated)</Label>
@@ -113,4 +139,3 @@ export default function PostJobPage() {
     </div>
   );
 }
-

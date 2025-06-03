@@ -1,14 +1,16 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useAppContext } from '@/contexts/AppContext';
 import { skillMatching, type SkillMatchingOutput } from '@/ai/flows/skill-matching';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Briefcase, CheckCircle, FileText, MessageSquare, AlertTriangle, Star, Zap, Brain } from 'lucide-react';
+import { Briefcase, CheckCircle, FileText, MessageSquare, AlertTriangle, Star, Zap, Brain, Filter } from 'lucide-react';
 import type { Job } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
@@ -20,11 +22,17 @@ interface EnrichedJob extends Job {
   matchError?: string;
 }
 
+const employmentTypeOptions = ['All', 'Full-time', 'Part-time', 'Contract', 'Internship'] as const;
+
+
 export default function VeteranDashboardPage() {
   const { currentUser, jobs, applyForJob, getApplicationsByVeteran } = useAppContext();
   const [enrichedJobs, setEnrichedJobs] = useState<EnrichedJob[]>([]);
   const { toast } = useToast();
   const router = useRouter();
+
+  const [locationFilter, setLocationFilter] = useState('');
+  const [employmentTypeFilter, setEmploymentTypeFilter] = useState<typeof employmentTypeOptions[number]>('All');
 
   useEffect(() => {
     if (currentUser === undefined) return; 
@@ -72,6 +80,15 @@ export default function VeteranDashboardPage() {
     }
   }, [currentUser, jobs, router]);
 
+  const filteredAndSortedJobs = useMemo(() => {
+    return enrichedJobs.filter(job => {
+      const locationMatch = !locationFilter || job.location.toLowerCase().includes(locationFilter.toLowerCase());
+      const employmentTypeMatch = employmentTypeFilter === 'All' || job.employmentType === employmentTypeFilter;
+      return locationMatch && employmentTypeMatch;
+    });
+    // Sorting is already handled by AI match score when enrichedJobs is set
+  }, [enrichedJobs, locationFilter, employmentTypeFilter]);
+
 
   if (!currentUser || currentUser.role !== 'veteran') {
     return <p className="text-center py-10">Loading dashboard or access denied...</p>;
@@ -103,17 +120,51 @@ export default function VeteranDashboardPage() {
           <Card className="shadow-lg">
             <CardHeader>
               <CardTitle className="font-headline text-2xl text-primary">Recommended Job Openings</CardTitle>
-              <CardDescription>Jobs matched to your skills, preferences, age, and qualifications. Update your profile for better matches.</CardDescription>
+              <CardDescription>Jobs matched to your skills and preferences. Use filters to refine your search.</CardDescription>
             </CardHeader>
             <CardContent>
-              {enrichedJobs.length === 0 && !enrichedJobs.some(j => j.isLoadingMatch) && (
+              <div className="mb-6 p-4 border rounded-lg bg-muted/50">
+                <h3 className="text-lg font-semibold mb-3 flex items-center"><Filter className="mr-2 h-5 w-5 text-primary"/>Filter Jobs</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="locationFilter" className="font-medium">Location</Label>
+                    <Input 
+                      id="locationFilter"
+                      placeholder="e.g., City, State or Remote"
+                      value={locationFilter}
+                      onChange={(e) => setLocationFilter(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="employmentTypeFilter" className="font-medium">Employment Type</Label>
+                    <Select
+                      value={employmentTypeFilter}
+                      onValueChange={(value) => setEmploymentTypeFilter(value as typeof employmentTypeOptions[number])}
+                    >
+                      <SelectTrigger id="employmentTypeFilter" className="mt-1">
+                        <SelectValue placeholder="Select Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {employmentTypeOptions.map(type => (
+                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              {filteredAndSortedJobs.length === 0 && !enrichedJobs.some(j => j.isLoadingMatch) && (
                  <div className="text-center py-10">
                     <Briefcase className="mx-auto h-12 w-12 text-muted-foreground" />
-                    <p className="mt-4 text-lg text-muted-foreground">No job suggestions available right now. Check back later or ensure employers have posted jobs.</p>
+                    <p className="mt-4 text-lg text-muted-foreground">
+                      {enrichedJobs.length > 0 ? "No jobs match your current filters." : "No job suggestions available right now. Check back later."}
+                    </p>
                   </div>
               )}
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {enrichedJobs.map((job) => (
+                {filteredAndSortedJobs.map((job) => (
                   <JobSuggestionCard 
                     key={job.id} 
                     job={job} 
@@ -121,6 +172,14 @@ export default function VeteranDashboardPage() {
                     isApplied={isApplied(job.id)} 
                   />
                 ))}
+                 {enrichedJobs.some(j => j.isLoadingMatch) && Array.from({length:3}).map((_, i) => (
+                    <Card key={`skeleton-${i}`} className="flex flex-col h-full shadow-md">
+                      <CardHeader><Skeleton className="h-6 w-3/4" /><Skeleton className="h-4 w-1/2 mt-2" /></CardHeader>
+                      <CardContent className="flex-grow space-y-3"><Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-5/6" /><Skeleton className="h-4 w-full" /></CardContent>
+                      <CardFooter><Skeleton className="h-10 w-full" /></CardFooter>
+                    </Card>
+                  ))
+                }
               </div>
             </CardContent>
           </Card>
@@ -202,6 +261,7 @@ function JobSuggestionCard({ job, onApply, isApplied }: JobSuggestionCardProps) 
         </div>
         <CardDescription className="text-sm text-muted-foreground">
           {job.employerName} - {job.location}
+          {job.employmentType && ` - ${job.employmentType}`}
           {job.maxAgeRequirement && ` (Max Age: ${job.maxAgeRequirement})`}
         </CardDescription>
         <p className="text-xs text-muted-foreground pt-1">Posted: {new Date(job.postedDate).toLocaleDateString()}</p>
@@ -253,4 +313,3 @@ function JobSuggestionCard({ job, onApply, isApplied }: JobSuggestionCardProps) 
     </Card>
   );
 }
-
