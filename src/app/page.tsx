@@ -5,12 +5,12 @@ import { Briefcase, Users, Building, CheckCircle } from 'lucide-react';
 import Image from 'next/image';
 
 export default function HomePage() {
-  const features = [
-    "AI-Powered Skill Mapping",
-    "Targeted Job Board",
-    "Mentorship Connections",
-    "Employer Partnerships"
-  ];
+  // const features = [
+  //   "AI-Powered Skill Mapping",
+  //   "Targeted Job Board",
+  //   "Mentorship Connections",
+  //   "Employer Partnerships"
+  // ];
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-center">
